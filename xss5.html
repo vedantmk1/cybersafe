@@ -1,0 +1,460 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>XSS Challenge - Level 5</title>
+    <style>
+        body {
+            font-family: Lucida Console, Monospace;
+            background-color: #222;
+            color: #ddd;
+            margin: 0;
+            padding: 0;
+            text-align: center;
+            line-height: 1.5;
+        }
+        h1 {
+            color: #66ff66;
+            background-color: rgb(77, 77, 77);
+            border-radius: 8px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.5);
+            margin-top: 10px;
+            padding: 10px;
+        }
+        .container {
+            max-width: 800px;
+            margin: 30px auto;
+            padding: 20px;
+            background-color: #333;
+            border-radius: 8px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.5);
+        }
+        .browser-bar {
+            display: flex;
+            align-items: center;
+            background-color: #333;
+            padding: 10px;
+            border-bottom: 2px solid #666;
+        }
+        .browser-bar input[type="text"] {
+            flex: 1;
+            padding: 5px;
+            margin: 0 10px;
+            border: 1px solid #666;
+            border-radius: 4px;
+            background-color: #444;
+            color: #fff;
+        }
+        .browser-bar button {
+            padding: 5px 10px;
+            border: none;
+            background-color: #555;
+            color: #fff;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+        .browser-bar button:hover {
+            background-color: #666;
+        }
+        .content {
+            text-align: center;
+            margin-top: 10px;
+            color: #080808;
+        }
+        .content h2 {
+            font-size: 48px;
+            color: #0855d1;
+        }
+        
+        
+        
+        .browser {
+            background-color: #ffffff;
+            border-radius: 4px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.5);
+            margin-bottom: 10px;
+        }
+       
+        #next-level-button {
+            display: none;
+            margin-top: 20px;
+            padding: 10px 20px;
+            font-size: 18px;
+            color: #fff;
+            background-color: #28a745;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+        #next-level-button:hover {
+            background-color: #218838;
+        }
+        #hint-button {
+            margin-top: 20px;
+            padding: 10px 20px;
+            font-size: 16px;
+            color: #fff;
+            background-color: #007bff;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.2);
+            transition: background-color 0.3s ease, box-shadow 0.3s ease;
+        }
+
+        #hint-button:hover {
+            background-color: #0056b3;
+            box-shadow: 0 0 15px rgba(0, 0, 0, 0.4);
+        }
+
+        #hint-button:disabled {
+            background-color: #6c757d;
+            cursor: not-allowed;
+            box-shadow: none;
+        }
+
+        #hints-container {
+            margin-top: 10px;
+            text-align: center;
+            max-width: 600px;
+            margin-left: auto;
+            margin-right: auto;
+            padding: 10px;
+            background-color: #333;
+            border-radius: 8px;
+            color: #ddd;
+            font-family: Arial, sans-serif;
+            line-height: 1.5;
+        }
+
+        #hints-container p {
+            margin: 5px 0;
+            color: #ddd;
+        }
+
+        #score-container {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            background-color: #333;
+            color: #fff;
+            padding: 10px 20px;
+            border-radius: 8px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.5);
+            font-family: Arial, sans-serif;
+            font-size: 16px;
+            z-index: 1000; /* Ensures it stays on top of other elements */
+        }
+
+        #score-container h3 {
+            margin: 0;
+            font-weight: normal;
+            font-size: 18px;
+        }
+
+        .groovy {
+            margin-top: 0%;
+            font-size: 90px;
+            font-weight: bold;
+            margin-bottom: -5%;
+        }
+        .g { color: lightblue; }
+        .r { color: orange; }
+        .o { color: lightblue; }
+        .v { color: green; }
+        .y { color: red; }
+        .reader {
+            font-size: 30px;
+            color: pink;
+        }
+        .signup {
+            font-size: 18px;
+        }
+        .email-form {
+            margin-top: 20px;
+        }
+        .email-form input {
+            padding: 5px;
+            font-size: 16px;
+        }
+        .next-link {
+            display: block;
+            margin-top: 10px;
+            font-size: 16px;
+        }
+        
+        
+    </style>
+</head>
+
+
+
+
+
+
+
+
+
+
+<body>
+    <div class="container">
+        <h1>[5/6] Level 5: Breaking protocol</h1>
+
+        <p><h2>Mission Description</h2>
+            Cross-site scripting isn't just about correctly escaping data. Sometimes, attackers can do bad things even without injecting new elements into the DOM.
+        </p>
+        <br>
+        <p><h2>Mission Objective</h2>
+            Inject a script to pop up an alert() in the context of the application.
+        </p>
+
+        <br>
+        <b><h3>Your Target!</h3></b>
+
+        <div class="browser">
+            <div class="browser-bar">
+                <span>URL</span>
+                <input type="text" id="url-bar" value="https://xsscs.com/level5/frame/welcome" autocomplete="off">
+                <button onclick="goButtonClick()">Go</button>
+            </div>
+
+            <div class="content" id="search-section">
+                <p>Welcome! Today we are announcing the much anticipated</p>
+                <p class="groovy">
+                    <span class="g">T</span><span class="r">r</span><span class="o">o</span><span class="v">v</span><span class="y">y</span>
+                </p>
+                <p class="reader">Reader 2.0</p>
+                
+                <p class="signup"><a href="#" onclick="loadSignup()">Sign up</a> for an exclusive Beta.</p>
+            </div>
+
+            
+            <br>
+            <br>
+            <br>
+            <br>
+        </div>
+        
+        <button id="hint-button" onclick="showHint()">Show Hint</button>
+        <span id="hint-count">(0/5 hints used)</span>
+        <div id="hints-container"></div>
+
+
+        <button id="next-level-button" onclick="goToNextLevel()">Go to Next Level</button>
+    </div>
+    
+    <div id="score-container">
+        <h3>Score: <span id="score">0</span></h3>
+    </div>
+
+
+
+
+
+
+
+
+
+
+
+
+    <script>
+         
+
+         function loadSignup() {
+
+            // Change the URL in the browser bar
+            document.getElementById('url-bar').value = 'https://xsscs.com/level5/frame/signup?next=confirm';
+
+            document.getElementById('search-section').innerHTML = `
+                <p class="groovy"><span class="g">T</span><span class="r">r</span><span class="o">o</span><span class="v">v</span><span class="y">y</span>
+                </p>
+                <p class="reader">Reader 2.0</p>
+                <h3>Sign Up for Beta</h3>
+                <label for='email'>Enter email:</label>
+                <input type='email' id='email' name='email'>
+                <br><br>
+                <button onclick='confirm()'>Next</button>
+            `;
+        }
+        
+        function confirm() {        // Get the current URL value
+            let url = document.getElementById('url-bar').value;
+            let urlParams = new URLSearchParams(url.split('?')[1]);
+            let nextParam = urlParams.get('next');
+
+            // If "Next" is clicked without "Go", redirect immediately to welcome page
+            if (!isVerified) {
+                // Show confirmation message before redirecting
+            document.getElementById('search-section').innerHTML = `
+                <p class="groovy"><span class="g">T</span><span class="r">r</span><span class="o">o</span><span class="v">v</span><span class="y">y</span></p>
+                <p class="reader">Reader 2.0</p>
+                <h3>Thanks for Signing up, You will be Redirected soon...</h3>
+            `;
+
+            // Wait 5 seconds, then redirect to the welcome page
+            setTimeout(() => {
+                document.getElementById('url-bar').value = 'https://xsscs.com/level5/frame/welcome';
+                document.getElementById('search-section').innerHTML = `
+                    <p>Welcome! Today we are announcing the much anticipated</p>
+                    <p class="groovy">
+                        <span class="g">T</span><span class="r">r</span><span class="o">o</span><span class="v">v</span><span class="y">y</span>
+                    </p>
+                    <p class="reader">Reader 2.0</p>
+                    
+                    <p class="signup"><a href="#" onclick="loadSignup()">Sign up</a> for an exclusive Beta.</p>
+                `;
+            }, 5000); // 5 seconds delay
+            
+                return;
+            }
+
+            // If 'next' contains 'javascript:', execute it
+            if (nextParam && nextParam.startsWith('javascript:')) {
+                eval(nextParam.substring(11)); // Remove "javascript:" and execute the rest
+                alert("XSS Alert Triggered!");
+                setTimeout(function() {
+                    // Create overlay (blur effect)
+                    let overlay = document.createElement("div");
+                    overlay.id = "overlay"; // Assign an ID for easy removal
+                    overlay.style.position = "fixed";
+                    overlay.style.top = "0";
+                    overlay.style.left = "0";
+                    overlay.style.width = "100%";
+                    overlay.style.height = "100%";
+                    overlay.style.background = "rgba(0, 0, 0, 0.5)"; // Semi-transparent dark overlay
+                    overlay.style.backdropFilter = "blur(5px)"; // Apply blur effect
+                    overlay.style.zIndex = "9998"; // Below the popup
+
+                    // Create popup
+                    let popup = document.createElement("div");
+                    popup.style.position = "fixed";
+                    popup.style.top = "50%";
+                    popup.style.left = "50%";
+                    popup.style.transform = "translate(-50%, -50%)";
+                    popup.style.background = "black";
+                    popup.style.color = "white";
+                    popup.style.padding = "20px";
+                    popup.style.border = "2px solid white";
+                    popup.style.borderRadius = "5px";
+                    popup.style.zIndex = "9999"; // Above the overlay
+                    popup.style.boxShadow = "0px 0px 10px rgba(0, 0, 0, 0.5)";
+                    popup.style.maxWidth = "80vw";  
+                    popup.style.maxHeight = "60vh"; 
+                    popup.style.overflow = "auto";  
+                    popup.style.textAlign = "center"; 
+                    popup.style.whiteSpace = "normal"; 
+
+                    popup.innerHTML = `<p style="margin-bottom: 10px;">
+                                        <strong>Level 5: URL-Based XSS</strong><br><br>
+                                        The next parameter from the URL was used directly in an href attribute without validation.<br><br>
+                                        Changing the URL to javascript: alert( ) caused the link to execute JavaScript when clicked.<br><br>
+                                        The result: Clicking the "Next" link triggered an alert box.<br><br>
+                                    </p>
+                                    <button id="closePopup"
+                                            style="padding: 5px 10px; background: white; color: black; border: none; cursor: pointer; border-radius: 3px;">
+                                        OK
+                                    </button>`;
+
+                    // Append elements
+                    document.body.appendChild(overlay);
+                    document.body.appendChild(popup);
+
+                    // Add event listener to remove blur when clicking OK
+                    document.getElementById("closePopup").addEventListener("click", function() {
+                        popup.remove(); // Remove popup
+                        overlay.remove(); // Remove overlay (blur)
+                    });
+
+                }, 100);
+                document.getElementById('next-level-button').style.display = 'inline-block';
+                isVerified = false; // Reset flag after execution
+            }
+
+            // Show confirmation message before redirecting
+            document.getElementById('search-section').innerHTML = `
+                <p class="groovy"><span class="g">T</span><span class="r">r</span><span class="o">o</span><span class="v">v</span><span class="y">y</span></p>
+                <p class="reader">Reader 2.0</p>
+                <h3>Thanks for Signing up, You will be Redirected soon...</h3>
+            `;
+
+            // Wait 5 seconds, then redirect to the welcome page
+            setTimeout(() => {
+                document.getElementById('url-bar').value = 'https://xsscs.com/level5/frame/welcome';
+                document.getElementById('search-section').innerHTML = `
+                    <p>Welcome! Today we are announcing the much anticipated</p>
+                    <p class="groovy">
+                        <span class="g">T</span><span class="r">r</span><span class="o">o</span><span class="v">v</span><span class="y">y</span>
+                    </p>
+                    <p class="reader">Reader 2.0</p>
+                    
+                    <p class="signup"><a href="#" onclick="loadSignup()">Sign up</a> for an exclusive Beta.</p>
+                `;
+            }, 5000); // 5 seconds delay
+        } 
+
+        
+        let isVerified = false; // Flag to track if the URL has been checked
+
+        function goButtonClick() {
+            let url = document.getElementById('url-bar').value;
+            let urlParams = new URLSearchParams(url.split('?')[1]);
+            let nextParam = urlParams.get('next');
+
+            // Check if 'next' contains 'javascript:', set the flag
+            if (nextParam && nextParam.startsWith('javascript:')) {
+                isVerified = true;
+            } else {
+                isVerified = false;
+            }
+             
+        }
+        
+
+        let hintIndex = 0;
+        let score = 0; // Initialize score
+        const hints = [
+            "Hint 1: Look at how the URL is used in the code. Is there a way to control it?",
+            "Hint 2: Notice that the Next button extracts a next parameter from the URL and executes it under certain conditions.",
+            "Hint 3: The script checks if next starts with javascript: what happens if you modify the URL to include your own JavaScript?",
+            "Hint 4: Try setting the next parameter in the URL to something like javascript: alert( ) and see how the application behaves.",
+            "Hint 5: If done correctly, this should trigger an alert box—confirming an XSS vulnerability."
+        ];
+
+        function showHint() {
+            const hintsContainer = document.getElementById('hints-container');
+            const hintCount = document.getElementById('hint-count');
+
+            if (hintIndex < hints.length) {
+                const hint = document.createElement('p');
+                hint.textContent = hints[hintIndex];
+                hintsContainer.appendChild(hint);
+                hintIndex++;
+
+                // Update the hint count
+                hintCount.textContent = `(${hintIndex}/5 hints used)`;
+
+                // Disable the button after all hints are shown
+                if (hintIndex === hints.length) {
+                    document.getElementById('hint-button').disabled = true;
+                }
+            }
+        }
+
+        function goToNextLevel() {
+            window.location.href = 'xss6.html';
+        }
+
+        // Mark the level as completed
+        const currentLevel = 5; // Change this for each level
+        let progress = JSON.parse(localStorage.getItem('xssProgress')) || { completedLevels: [] };
+
+        if (!progress.completedLevels.includes(currentLevel)) {
+        progress.completedLevels.push(currentLevel);
+        localStorage.setItem('xssProgress', JSON.stringify(progress));
+        }
+
+    </script>
+</body>
+</html>

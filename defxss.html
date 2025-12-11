@@ -1,0 +1,239 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>XSS Challenge - dashboard</title>
+    <style>
+        body {
+            font-family: Lucida Console, Monospace;
+            background-color: #222;
+            color: #ddd;
+            margin: 0;
+            padding: 0;
+            text-align: center;
+            line-height: 1.5;
+        }
+        h1 {
+            color: #66ff66;
+            background-color: rgb(77, 77, 77);
+            border-radius: 8px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.5);
+            margin-top: 10px;
+            padding: 10px;
+        }
+        .container {
+            max-width: 800px;
+            margin: 30px auto;
+            padding: 20px;
+            background-color: #333;
+            border-radius: 8px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.5);
+        }
+
+        .container1 {
+            max-width: 800px;
+            overflow-x: auto; 
+            margin: 0 auto;
+            padding: 20px;
+        }
+        h2 {
+            color: #ffffff;
+        }
+        table {
+            
+            width: 80%;
+            border-collapse: collapse;
+            margin: 10px 0;
+            margin-left: 70px;
+            min-width: 500px; /* Ensures it doesn’t shrink too much */
+        }
+        th, td {
+            
+            padding: 5px;
+            border: 2px solid #ffffff;
+            text-align: center;
+        }
+        th {
+            background-color: #333;
+            color: #fff;
+        }
+        .completed {
+            color: #66ff66;
+        }
+        .current {
+            background-color: #28a745;
+            color: #fff;
+            border-radius: 4px;
+            padding: 5px 10px;
+            text-decoration: none;
+        }
+        .locked {
+            background-color: #888;
+            color: #333;
+            border-radius: 4px;
+            padding: 5px 10px;
+            text-decoration: none;
+            cursor: not-allowed;
+        }
+
+        a.accessible {
+            color: #ffffff;
+            text-decoration: underline;
+            cursor: pointer;
+        }
+
+        /* Style for "Go to Level" buttons */
+        a.current {
+            background-color: #28a745;
+            color: #fff;
+            border-radius: 4px;
+            padding: 5px 10px;
+            text-decoration: none;
+            cursor: pointer;
+        }
+
+        /* Style for locked levels */
+        span.locked {
+            background-color: #888;
+            color: #333;
+            border-radius: 4px;
+            padding: 5px 10px;
+            cursor: not-allowed;
+        }
+
+        @media (max-width: 600px) {
+            h1 {
+                font-size: 1.5em;
+            }
+            
+            h2 {
+                font-size: 1em;
+            }
+
+            table {
+                font-size: 0.9em;
+            }
+
+            .current, .locked {
+                font-size: 0.9rem;
+                padding: 6px 10px;
+            }
+        }
+    </style>
+</head>
+
+
+
+
+
+
+
+
+
+
+<body>
+    <div class="container">
+        <h1>Warning: The XSS Game</h1>
+
+        <p><h2>Welcome, Player!</h2>
+            <u><b>Cross-site scripting (XSS)</b></u> is a type of security vulnerability that can be found in some web applications. XSS attacks enable attackers to inject client-side scripts into web pages viewed by other users. A cross-site scripting vulnerability may be used by attackers to bypass access controls such as the same-origin policy.
+        </p>
+        
+        <div class="container1">
+            <h2>Training Progress:</h2>
+            <table>
+                <thead>
+                    <tr>
+                        <th>Level</th>
+                        <th>Description</th>
+                        <th>Status</th>
+                    </tr>
+                </thead>
+                <tbody id="progress-table">
+                <!-- Levels will be dynamically added here -->
+                </tbody>
+            </table>
+        </div>
+        
+        <p><h2>What's this all about?</h2>
+            This security game consists of several levels resembling real-world applications which are vulnerable to XSS - your task will be to find the problem and attack the apps, similar to what an evil hacker might do.
+            <br>
+            <br>
+            XSS bugs are common because they have a nasty habit of popping up wherever a webapp deals with untrusted input. Our motivation is to highlight common coding patterns which lead to XSS to help you spot them in your code. 
+        </p>
+        
+    </div>    
+    <button onclick="resetProgress()" style="margin-top: 20px; padding: 10px; background-color: red; color: white; border: none; cursor: pointer; border-radius: 5px;">Reset Progress</button>
+
+
+
+
+
+
+
+
+
+
+    
+    <script>
+        // Define levels and their descriptions
+        const levels = [
+            { id: 1, title: "Hello, world of XSS", description: "Level 1", link: "xss.html" },
+            { id: 2, title: "Persistence is key", description: "Level 2", link: "xss2.html" },
+            { id: 3, title: "That sinking feeling..", description: "Level 3", link: "xss3.html" },
+            { id: 4, title: "The Context Matters", description: "Level 4", link: "xss4.html" },
+            { id: 5, title: "Breaking protocol", description: "Level 5", link: "xss5.html" },
+            { id: 6, title: "Follow the Rabbit...", description: "Level 6", link: "xss6.html" },
+        ];
+
+        // Fetch progress from localStorage
+        const progress = JSON.parse(localStorage.getItem('xssProgress')) || { completedLevels: [] };
+
+        // Get the table body element
+        const tableBody = document.getElementById('progress-table');
+
+        // Render levels in the table
+        levels.forEach((level) => {
+            const row = document.createElement('tr');
+
+            // Level description
+            row.appendChild(document.createElement('td')).textContent = level.description;
+
+            // Level title (always underlined and clickable for completed and current levels)
+            const titleCell = document.createElement('td');
+            if (progress.completedLevels.includes(level.id) || level.id === 1 || progress.completedLevels.includes(level.id - 1)) {
+                titleCell.innerHTML = `<a href="${level.link}" class="accessible">${level.title}</a>`;
+            } else {
+                titleCell.textContent = level.title;
+            }
+            row.appendChild(titleCell);
+
+            // Determine the status column
+            const statusCell = document.createElement('td');
+            if (progress.completedLevels.includes(level.id)) {
+                statusCell.innerHTML = `<span class="completed">✔ Completed</span>`;
+            } else if (
+                progress.completedLevels.includes(level.id - 1) || // Previous level is completed
+                level.id === 1 // First level
+            ) {
+                statusCell.innerHTML = `<a href="${level.link}" class="current">Let's Go</a>`;
+            } else {
+                statusCell.innerHTML = `<span class="locked">Locked</span>`;
+            }
+
+            row.appendChild(statusCell);
+            tableBody.appendChild(row);
+        });
+
+        function resetProgress() {
+            localStorage.removeItem('xssProgress');  // Clear progress
+            localStorage.removeItem('totalScore');   // Reset total score if needed
+            alert("Progress has been reset!");
+            location.reload();  // Reload page to apply changes
+        }
+
+    </script>
+</body>
+</html>
+    

@@ -1,0 +1,358 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>XSS Challenge - Level 6</title>
+    <style>
+        body {
+            font-family: Lucida Console, Monospace;
+            background-color: #222;
+            color: #ddd;
+            margin: 0;
+            padding: 0;
+            text-align: center;
+            line-height: 1.5;
+        }
+        h1 {
+            color: #66ff66;
+            background-color: rgb(77, 77, 77);
+            border-radius: 8px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.5);
+            margin-top: 10px;
+            padding: 10px;
+        }
+        .container {
+            max-width: 800px;
+            margin: 30px auto;
+            padding: 20px;
+            background-color: #333;
+            border-radius: 8px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.5);
+        }
+        .browser-bar {
+            display: flex;
+            align-items: center;
+            background-color: #333;
+            padding: 10px;
+            border-bottom: 2px solid #666;
+        }
+        .browser-bar input[type="text"] {
+            flex: 1;
+            padding: 5px;
+            margin: 0 10px;
+            border: 1px solid #666;
+            border-radius: 4px;
+            background-color: #444;
+            color: #fff;
+        }
+        .browser-bar button {
+            padding: 5px 10px;
+            border: none;
+            background-color: #555;
+            color: #fff;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+        .browser-bar button:hover {
+            background-color: #666;
+        }
+        .content {
+            text-align: center;
+            margin-top: 10px;
+            color: #080808;
+        }
+        .content h2 {
+            font-size: 48px;
+            color: #0855d1;
+        }
+        
+        
+        
+        .browser {
+            background-color: #ffffff;
+            border-radius: 4px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.5);
+            margin-bottom: 10px;
+        }
+       
+        #next-level-button {
+            display: none;
+            margin-top: 20px;
+            padding: 10px 20px;
+            font-size: 18px;
+            color: #fff;
+            background-color: #28a745;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+        #next-level-button:hover {
+            background-color: #218838;
+        }
+        #hint-button {
+            margin-top: 20px;
+            padding: 10px 20px;
+            font-size: 16px;
+            color: #fff;
+            background-color: #007bff;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.2);
+            transition: background-color 0.3s ease, box-shadow 0.3s ease;
+        }
+
+        #hint-button:hover {
+            background-color: #0056b3;
+            box-shadow: 0 0 15px rgba(0, 0, 0, 0.4);
+        }
+
+        #hint-button:disabled {
+            background-color: #6c757d;
+            cursor: not-allowed;
+            box-shadow: none;
+        }
+
+        #hints-container {
+            margin-top: 10px;
+            text-align: center;
+            max-width: 600px;
+            margin-left: auto;
+            margin-right: auto;
+            padding: 10px;
+            background-color: #333;
+            border-radius: 8px;
+            color: #ddd;
+            font-family: Arial, sans-serif;
+            line-height: 1.5;
+        }
+
+        #hints-container p {
+            margin: 5px 0;
+            color: #ddd;
+        }
+
+        #score-container {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            background-color: #333;
+            color: #a2cae1;
+            padding: 10px 20px;
+            border-radius: 8px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.5);
+            font-family: Arial, sans-serif;
+            font-size: 16px;
+            z-index: 1000; /* Ensures it stays on top of other elements */
+        }
+
+        #score-container h3 {
+            margin: 0;
+            font-weight: normal;
+            font-size: 18px;
+        }
+
+        
+    </style>
+</head>
+
+
+
+
+
+
+
+
+
+
+<body>
+    <div class="container">
+        <h1>[6/6] Level 6: Follow the Rabbit...</h1>
+
+        <p><h2>Mission Description</h2>
+            Complex web applications sometimes have the capability to dynamically load JavaScript libraries based on the value of their URL parameters or part of location.hash.
+            <br><br>
+            This is very tricky to get right -- allowing user input to influence the URL when loading scripts or other potentially dangerous types of data such as XMLHttpRequest often leads to serious vulnerabilities.
+        </p>
+        <br>
+        <p><h2>Mission Objective</h2>
+            Find a way to make the application request an external file which will cause it to execute an alert().
+        </p>
+
+        <br>
+        <b><h3>Your Target!</h3></b>
+
+        <div class="browser">
+            <div class="browser-bar">
+                <span>URL</span>
+                <input type="text" id="url-bar" value="https://xsscs.com/level6/frame#/static/gadgets.js" autocomplete="off">
+                <button onclick="goButtonClick()">Go</button>
+            </div>
+
+            <div class="content" id="search-section">
+                <img src="lev6.png" width="200" height="200"/>
+                <br>
+                Couldn't load gadget from /static/gadgets.js
+            </div>
+
+            <br>
+            <br>
+            <br>
+            <br>
+        </div>
+        
+        <button id="hint-button" onclick="showHint()">Show Hint</button>
+        <span id="hint-count">(0/5 hints used)</span>
+        <div id="hints-container"></div>
+
+
+        <button id="next-level-button" onclick="goToNextLevel()">Back To Panel</button>
+    </div>
+    
+    <div id="score-container">
+        <h3>Score: <span id="score">0</span></h3>
+    </div>
+
+
+
+
+
+
+
+
+
+
+    
+    <script>
+
+        function goButtonClick() {
+            const urlBar = document.getElementById("url-bar");
+            const searchSection = document.getElementById("search-section");
+            const url = urlBar.value.trim();
+
+            // Extract the part after #
+            const hashIndex = url.indexOf("#");
+            if (hashIndex !== -1) {
+                const userInput = url.substring(hashIndex + 1); // Everything after #
+
+                // If userInput starts with '/', prevent changing message
+                if (userInput.startsWith("/")) {
+                    searchSection.innerHTML = `<img src="lev6.png" width="200" height="200"/><br>Couldn't load gadget from ${userInput}`;
+                } 
+                // If userInput starts with "data:text/javascript,alert()"
+                else if (userInput.startsWith("data:text/javascript,alert(")) {
+                    searchSection.innerHTML = `<img src="lev6.png" width="200" height="200"/><br>Loaded gadget from ${userInput}<br><b style="color:red;">XSS Alert Triggered!<br><h2> Congratulations! </h2>You have successfully completed the game.</b>`;
+                    alert("XSS Alert Triggered!");
+                    setTimeout(function() {
+                    // Create overlay (blur effect)
+                    let overlay = document.createElement("div");
+                    overlay.id = "overlay"; // Assign an ID for easy removal
+                    overlay.style.position = "fixed";
+                    overlay.style.top = "0";
+                    overlay.style.left = "0";
+                    overlay.style.width = "100%";
+                    overlay.style.height = "100%";
+                    overlay.style.background = "rgba(0, 0, 0, 0.5)"; // Semi-transparent dark overlay
+                    overlay.style.backdropFilter = "blur(5px)"; // Apply blur effect
+                    overlay.style.zIndex = "9998"; // Below the popup
+
+                    // Create popup
+                    let popup = document.createElement("div");
+                    popup.style.position = "fixed";
+                    popup.style.top = "50%";
+                    popup.style.left = "50%";
+                    popup.style.transform = "translate(-50%, -50%)";
+                    popup.style.background = "black";
+                    popup.style.color = "white";
+                    popup.style.padding = "20px";
+                    popup.style.border = "2px solid white";
+                    popup.style.borderRadius = "5px";
+                    popup.style.zIndex = "9999"; // Above the overlay
+                    popup.style.boxShadow = "0px 0px 10px rgba(0, 0, 0, 0.5)";
+                    popup.style.maxWidth = "80vw";  
+                    popup.style.maxHeight = "60vh"; 
+                    popup.style.overflow = "auto";  
+                    popup.style.textAlign = "center"; 
+                    popup.style.whiteSpace = "normal"; 
+
+                    popup.innerHTML = `<p style="margin-bottom: 10px;">
+                                        <strong>Level 6: Script Injection via URL Hash</strong><br><br>
+                                        The script dynamically created a < script> element and set its src to the value in the URL hash.<br><br>
+                                        Direct http URLs were blocked, but data: URLs were allowed.<br><br>
+                                        Using #data:text/javascript,alert( ), the browser executed the injected JavaScript.<br><br>
+                                        The result: The alert was triggered when the page loaded.<br><br>
+                                    </p>
+                                    <button id="closePopup"
+                                            style="padding: 5px 10px; background: white; color: black; border: none; cursor: pointer; border-radius: 3px;">
+                                        OK
+                                    </button>`;
+
+                    // Append elements
+                    document.body.appendChild(overlay);
+                    document.body.appendChild(popup);
+                    document.getElementById('next-level-button').style.display = 'inline-block';
+                    // Add event listener to remove blur when clicking OK
+                    document.getElementById("closePopup").addEventListener("click", function() {
+                        popup.remove(); // Remove popup
+                        overlay.remove(); // Remove overlay (blur)
+                    });
+
+                }, 100);
+                } 
+                // Otherwise, update message
+                else {
+                    searchSection.innerHTML = `<img src="lev6.png" width="200" height="200"/><br>Loaded gadget from ${userInput}`;
+                }
+            } else {
+                searchSection.innerHTML = `<img src="lev6.png" width="200" height="200"/><br>Couldn't load gadget from static/gadgets.js`;
+            }
+        }
+
+
+        let hintIndex = 0;
+        let score = 0; // Initialize score
+        const hints = [
+            "Hint 1: The application loads JavaScript files dynamically based on the value in the URL. Look closely at the part after the # symbol in the URL bar.",
+            "Hint 2: The JavaScript code does not properly validate or sanitize user input when constructing URLs. Can you use this to execute JavaScript?",
+            "Hint 3: Try injecting a JavaScript scheme URL instead of a regular path.",
+            "Hint 4: Since the app attempts to load external JavaScript files, consider how you could redirect it to an external malicious JavaScript file instead of the default /static/gadgets.js.",
+            "Hint 5 : Try putting data:text/javascript,alert('XSS') after #."
+        ];
+
+        function showHint() {
+            const hintsContainer = document.getElementById('hints-container');
+            const hintCount = document.getElementById('hint-count');
+
+            if (hintIndex < hints.length) {
+                const hint = document.createElement('p');
+                hint.textContent = hints[hintIndex];
+                hintsContainer.appendChild(hint);
+                hintIndex++;
+
+                // Update the hint count
+                hintCount.textContent = `(${hintIndex}/5 hints used)`;
+
+                // Disable the button after all hints are shown
+                if (hintIndex === hints.length) {
+                    document.getElementById('hint-button').disabled = true;
+                }
+            }
+        }
+
+        function goToNextLevel() {
+            window.location.href = '';
+        }
+
+        // Mark the level as completed
+        const currentLevel = 6; // Change this for each level
+        let progress = JSON.parse(localStorage.getItem('xssProgress')) || { completedLevels: [] };
+
+        if (!progress.completedLevels.includes(currentLevel)) {
+        progress.completedLevels.push(currentLevel);
+        localStorage.setItem('xssProgress', JSON.stringify(progress));
+        }
+
+    </script>
+</body>
+</html>

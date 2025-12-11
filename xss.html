@@ -1,0 +1,425 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>XSS Challenge - Level 1</title>
+    <style>
+        body {
+            font-family: Lucida Console, Monospace;
+            background-color: #222;
+            color: #ddd;
+            margin: 0;
+            padding: 0;
+            text-align: center;
+            line-height: 1.5;
+        }
+        h1 {
+            color: #66ff66;
+            background-color: rgb(77, 77, 77);
+            border-radius: 8px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.5);
+            margin-top: 10px;
+            padding: 10px;
+        }
+        .container {
+            max-width: 800px;
+            margin: 30px auto;
+            padding: 20px;
+            background-color: #333;
+            border-radius: 8px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.5);
+        }
+        .browser-bar {
+            display: flex;
+            align-items: center;
+            background-color: #333;
+            padding: 10px;
+            border-bottom: 2px solid #666;
+        }
+        .browser-bar input[type="text"] {
+            flex: 1;
+            padding: 5px;
+            margin: 0 10px;
+            border: 1px solid #666;
+            border-radius: 4px;
+            background-color: #444;
+            color: #fff;
+        }
+        .browser-bar button {
+            padding: 5px 10px;
+            border: none;
+            background-color: #555;
+            color: #fff;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+        .browser-bar button:hover {
+            background-color: #666;
+        }
+        .content {
+            text-align: center;
+            margin-top: 50px;
+        }
+        .content h2 {
+            font-size: 48px;
+            color: #0855d1;
+        }
+        .content form {
+            margin: 20px;
+        }
+        .content input[type="text"] {
+            padding: 10px;
+            font-size: 16px;
+            width: 300px;
+            border: 1px solid #050505;
+            border-radius: 4px;
+            background-color: #e8e8e8;
+            color: #000000;
+        }
+        .content button {
+            padding: 10px 20px;
+            font-size: 16px;
+            color: #fff;
+            background-color: #555;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+        .content button:hover {
+            background-color: #666;
+        }
+        .browser {
+            background-color: #ffffff;
+            border-radius: 4px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.5);
+            margin-bottom: 10px;
+        }
+        .message {
+            display: none;
+            margin-top: 50px;
+            padding: 20px;
+            background-color: #ffffff;
+            color: #000000;
+            border-radius: 8px;
+        }
+        .message button {
+            padding: 10px 20px;
+            font-size: 16px;
+            color: #fff;
+            background-color: #555;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+        .message button:hover {
+            background-color: #666;
+        }
+        #next-level-button {
+            display: none;
+            margin-top: 20px;
+            padding: 10px 20px;
+            font-size: 18px;
+            color: #fff;
+            background-color: #28a745;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+        #next-level-button:hover {
+            background-color: #218838;
+        }
+        #hint-button {
+            margin-top: 20px;
+            padding: 10px 20px;
+            font-size: 16px;
+            color: #fff;
+            background-color: #007bff;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.2);
+            transition: background-color 0.3s ease, box-shadow 0.3s ease;
+        }
+
+        #hint-button:hover {
+            background-color: #0056b3;
+            box-shadow: 0 0 15px rgba(0, 0, 0, 0.4);
+        }
+
+        #hint-button:disabled {
+            background-color: #6c757d;
+            cursor: not-allowed;
+            box-shadow: none;
+        }
+
+        #hints-container {
+            margin-top: 10px;
+            text-align: center;
+            max-width: 600px;
+            margin-left: auto;
+            margin-right: auto;
+            padding: 10px;
+            background-color: #333;
+            border-radius: 8px;
+            color: #ddd;
+            font-family: Arial, sans-serif;
+            line-height: 1.5;
+        }
+
+        #hints-container p {
+            margin: 5px 0;
+            color: #ddd;
+        }
+
+        #score-container {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            background-color: #333;
+            color: #fff;
+            padding: 10px 20px;
+            border-radius: 8px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.5);
+            font-family: Arial, sans-serif;
+            font-size: 16px;
+            z-index: 1000; /* Ensures it stays on top of other elements */
+        }
+
+        #score-container h3 {
+            margin: 0;
+            font-weight: normal;
+            font-size: 18px;
+        }
+        
+
+        @media (max-width: 600px) {
+            h1 { font-size: 1.2rem; }
+            .container { padding: 10px; }
+            .browser-bar input, .content input, .browser-bar button, .content button {
+                font-size: 0.9rem;
+            }
+        }
+        
+    </style>
+</head>
+
+
+
+
+
+
+
+
+
+
+
+
+<body>
+    <div class="container">
+        <h1>[1/6] Level 1: Hello World of XSS</h1>
+
+        <p><h2>Mission Description</h2>
+            This level demonstrates a common XSS vulnerability where user input is directly included on the page without escaping.
+        </p>
+        <br>
+        <p><h2>Mission Objective</h2>
+            Inject a script to pop up a JavaScript alert() in the frame below.
+            <br>
+            <br>Once you show the alert you will be able to advance to the next level.
+        </p>
+
+        <br>
+        <b><h3>Your Target!</h3></b>
+
+        <div class="browser">
+            <div class="browser-bar">
+                <span>URL</span>
+                <input type="text" id="url-bar" value="https://xsscs.com/level1/frame" autocomplete="off">
+                <button onclick="goButtonClick()">Go</button>
+            </div>
+
+            <div class="content" id="search-section">
+                <h2>Doogle</h2>
+                <form onsubmit="return submitInput();">
+                    <input type="text" id="user-input" placeholder="Enter query here..." autocomplete="off">
+                    <button type="submit">Search</button>
+                </form>
+            </div>
+
+            <div class="message" id="message-section">
+                <h2>Sorry, no results were found for <span id="search-term"></span>...</h2>
+                <button onclick="tryAgain()">Try Again</button>
+            </div>
+            <br>
+            <br>
+            <br>
+            <br>
+        </div>
+        
+        <button id="hint-button" onclick="showHint()">Show Hint</button>
+        <span id="hint-count">(0/3 hints used)</span>
+        <div id="hints-container"></div>
+
+
+        <button id="next-level-button" onclick="goToNextLevel()">Go to Next Level</button>
+    </div>
+    
+    <div id="score-container">
+        <h3>Score: <span id="score">0</span></h3>
+    </div>
+
+
+
+
+
+
+
+
+
+
+    <script>
+        function submitInput() {
+            // Get user input
+            const userInput = document.getElementById('user-input').value;
+
+            // Check if input is not empty
+            if (userInput.trim() === '') {
+                alert('Please enter a query!');
+                return false;
+            }
+
+            // Show the message and hide the search section
+            document.getElementById('search-section').style.display = 'none';
+            document.getElementById('message-section').style.display = 'block';
+            document.getElementById('search-term').textContent = userInput;
+
+            // Update the URL bar
+            const formattedQuery = encodeURIComponent(userInput).replace(/%20/g, '+');
+            const urlBar = document.getElementById('url-bar');
+            urlBar.value = `https://xsscs.com/level1/frame?query=${formattedQuery}`;
+
+            return false;
+        }
+
+        function tryAgain() {
+            // Show the search section and hide the message
+            document.getElementById('search-section').style.display = 'block';
+            document.getElementById('message-section').style.display = 'none';
+            document.getElementById('user-input').value = '';
+            document.getElementById('search-term').textContent = '';
+            document.getElementById('url-bar').value = 'https://xsscs.com/level1/frame';
+        }
+
+        function goButtonClick() {
+            const urlBar = document.getElementById('url-bar');
+            const urlValue = urlBar.value;
+
+            if (/frame\?query=<script>alert\(\)<\/script>/i.test(urlValue)) {
+                alert('XSS Alert Triggered!');
+                // Step 2: Wait for user to click 'OK' on the alert, then show a custom pop-up
+                setTimeout(function() {
+                    // Create overlay (blur effect)
+                    let overlay = document.createElement("div");
+                    overlay.id = "overlay"; // Assign an ID for easy removal
+                    overlay.style.position = "fixed";
+                    overlay.style.top = "0";
+                    overlay.style.left = "0";
+                    overlay.style.width = "100%";
+                    overlay.style.height = "100%";
+                    overlay.style.background = "rgba(0, 0, 0, 0.5)"; // Semi-transparent dark overlay
+                    overlay.style.backdropFilter = "blur(5px)"; // Apply blur effect
+                    overlay.style.zIndex = "9998"; // Below the popup
+
+                    // Create popup
+                    let popup = document.createElement("div");
+                    popup.style.position = "fixed";
+                    popup.style.top = "50%";
+                    popup.style.left = "50%";
+                    popup.style.transform = "translate(-50%, -50%)";
+                    popup.style.background = "black";
+                    popup.style.color = "white";
+                    popup.style.padding = "20px";
+                    popup.style.border = "2px solid white";
+                    popup.style.borderRadius = "5px";
+                    popup.style.zIndex = "9999"; // Above the overlay
+                    popup.style.boxShadow = "0px 0px 10px rgba(0, 0, 0, 0.5)";
+                    popup.style.maxWidth = "80vw";  
+                    popup.style.maxHeight = "60vh"; 
+                    popup.style.overflow = "auto";  
+                    popup.style.textAlign = "center"; 
+                    popup.style.whiteSpace = "normal"; 
+
+                    popup.innerHTML = `<p style="margin-bottom: 10px;">
+                                        <strong>Level 1: Reflected XSS</strong><br><br>
+                                        The query parameter from the URL was directly inserted into the HTML response without sanitization.<br><br>
+                                        When <code>&lt;script&gt;alert();&lt;/script&gt;</code> was used, the browser executed it because it was reflected as-is in the page.<br><br>
+                                        The result: The JavaScript alert popped up, proving the vulnerability.<br><br>
+                                    </p>
+                                    <button id="closePopup"
+                                            style="padding: 5px 10px; background: white; color: black; border: none; cursor: pointer; border-radius: 3px;">
+                                        OK
+                                    </button>`;
+
+                    // Append elements
+                    document.body.appendChild(overlay);
+                    document.body.appendChild(popup);
+
+                    // Add event listener to remove blur when clicking OK
+                    document.getElementById("closePopup").addEventListener("click", function() {
+                        popup.remove(); // Remove popup
+                        overlay.remove(); // Remove overlay (blur)
+                    });
+
+                }, 100);
+
+
+                document.getElementById('next-level-button').style.display = 'inline-block';
+            }
+        }
+     
+        let hintIndex = 0;
+        let score = 0; // Initialize score
+        const hints = [
+            "Hint 1: Look for ways to inject JavaScript using the input box/search box.",
+            "Hint 2: Try using <script>alert()< /script> as part of your input.",
+            "Hint 3: The input directly modifies the URL bar without escaping. Exploit this behavior."
+        ];
+        
+        
+        function showHint() {
+            const hintsContainer = document.getElementById('hints-container');
+            const hintCount = document.getElementById('hint-count');
+
+            if (hintIndex < hints.length) {
+                const hint = document.createElement('p');
+                hint.textContent = hints[hintIndex];
+                hintsContainer.appendChild(hint);
+                hintIndex++;
+
+                // Update the hint count
+                hintCount.textContent = `(${hintIndex}/3 hints used)`;
+
+                // Disable the button after all hints are shown
+                if (hintIndex === hints.length) {
+                    document.getElementById('hint-button').disabled = true;
+                }
+            }
+        }
+
+        function goToNextLevel() {
+            window.location.href = 'xss2.html';
+        }
+
+        // Mark the level as completed
+        const currentLevel = 1; // Change this for each level
+        let progress = JSON.parse(localStorage.getItem('xssProgress')) || { completedLevels: [] };
+
+        if (!progress.completedLevels.includes(currentLevel)) {
+        progress.completedLevels.push(currentLevel);
+        localStorage.setItem('xssProgress', JSON.stringify(progress));
+        }
+
+    </script>
+</body>
+</html>

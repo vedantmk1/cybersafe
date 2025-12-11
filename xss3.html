@@ -1,0 +1,442 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>XSS Challenge - Level 3</title>
+    <style>
+        body {
+            font-family: Lucida Console, Monospace;
+            background-color: #222;
+            color: #ddd;
+            margin: 0;
+            padding: 0;
+            text-align: center;
+            line-height: 1.5;
+        }
+        h1 {
+            color: #66ff66;
+            background-color: rgb(77, 77, 77);
+            border-radius: 8px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.5);
+            margin-top: 10px;
+            padding: 10px;
+        }
+
+    
+        .container {
+            max-width: 800px;
+            margin: 30px auto;
+            padding: 20px;
+            background-color: #333;
+            border-radius: 8px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.5);
+        }
+        .browser-bar {
+            display: flex;
+            align-items: center;
+            background-color: #333;
+            padding: 10px;
+            border-bottom: 2px solid #666;
+        }
+        .browser-bar input[type="text"] {
+            flex: 1;
+            padding: 5px;
+            margin: 0 10px;
+            border: 1px solid #666;
+            border-radius: 4px;
+            background-color: #444;
+            color: #fff;
+        }
+        .browser-bar button {
+            padding: 5px 10px;
+            border: none;
+            background-color: #555;
+            color: #fff;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+        .browser-bar button:hover {
+            background-color: #666;
+        }
+        
+        .browser {
+            background-color: #ffffff;
+            border-radius: 4px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.5);
+            margin-bottom: 10px;
+        }
+        .browser h2 {
+            color:black;
+        }
+
+        .header img{
+            width: 200px;
+            height: 150px;
+            
+        }
+
+        .tabs {
+            display: flex;
+            justify-content: center;
+            margin: 10px 0;
+        }
+
+        .tabs button {
+            background-color: #333;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            margin: 0 5px;
+            cursor: pointer;
+        }
+
+        .tabs button.active {
+            background-color: #0078D4;
+        }
+
+        .image-container {
+            width: 600px;
+            height: 300px;
+            margin: 20px auto;
+            overflow: auto;
+            border: 6px solid #3d3d3d;
+            border-radius: 4px;
+            background-color: #fff;
+            text-align: center;
+        }
+
+        .image-container img {
+            max-width: 100%;
+            height: auto;
+            display: block;
+            margin: 0 auto;
+        }
+
+        .image-caption {
+            font-size: 18px;
+            margin-top: 10px;
+            color: #333;
+        }
+
+        #next-level-button {
+            display: none;
+            margin-top: 10px;
+            padding: 10px 20px;
+            font-size: 18px;
+            color: #fff;
+            background-color: #28a745;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+        #next-level-button:hover {
+            background-color: #218838;
+        }
+        #hint-button {
+            margin-top: 20px;
+            padding: 10px 20px;
+            font-size: 16px;
+            color: #fff;
+            background-color: #007bff;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.2);
+            transition: background-color 0.3s ease, box-shadow 0.3s ease;
+        }
+
+        #hint-button:hover {
+            background-color: #0056b3;
+            box-shadow: 0 0 15px rgba(0, 0, 0, 0.4);
+        }
+
+        #hint-button:disabled {
+            background-color: #6c757d;
+            cursor: not-allowed;
+            box-shadow: none;
+        }
+
+        #hints-container {
+            margin-top: 10px;
+            text-align: center;
+            max-width: 600px;
+            margin-left: auto;
+            margin-right: auto;
+            padding: 10px;
+            background-color: #333;
+            border-radius: 8px;
+            color: #ddd;
+            font-family: Arial, sans-serif;
+            line-height: 1.5;
+        }
+
+        #hints-container p {
+            margin: 5px 0;
+            color: #ddd;
+        }
+
+        #score-container {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            background-color: #333;
+            color: #fff;
+            padding: 10px 20px;
+            border-radius: 8px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.5);
+            font-family: Arial, sans-serif;
+            font-size: 16px;
+            z-index: 1000; /* Ensures it stays on top of other elements */
+        }
+
+        #score-container h3 {
+            margin: 0;
+            font-weight: normal;
+            font-size: 18px;
+        }
+
+    </style>
+</head>
+
+
+
+
+
+
+
+
+
+
+
+<body>
+    <div class="container">
+        <h1>[3/6] Level 3: That sinking feeling..</h1>
+
+        <p><h2>Mission Description</h2>
+            As you've seen in the previous level, some common JS functions are execution sinks which means that they will cause the browser to execute any scripts that appear in their input. Sometimes this fact is hidden by higher-level APIs which use one of these functions under the hood.
+            <br>
+            <br>The application on this level is using one such hidden sink.
+        </p>
+        <br>
+        <p><h2>Mission Objective</h2>
+            As before, inject a script to pop up a JavaScript alert() in the app.
+            <br>
+            <br>Since you can't enter your payload anywhere in the application, you will have to manually edit the address in the URL bar below.
+        </p>
+
+        <br>
+        <b><h3>Your Target!</h3></b>
+
+        <div class="browser">
+            <div class="browser-bar">
+                <span>URL</span>
+                <input type="text" id="url-bar" value="https://xsscs.com/level3/frame" autocomplete="off">
+                <button onclick="goButtonClick()">Go</button>
+            </div>
+             
+            <div class="header">
+                <img src="logo1.png" alt="Cloud Logo">
+                <h2>Take a tour of our cloud data center.</h2>
+            </div>
+
+            <div class="tabs">
+                <button class="tab-button" onclick="showImage(1)">Image 1</button>
+                <button class="tab-button" onclick="showImage(2)">Image 2</button>
+                <button class="tab-button" onclick="showImage(3)">Image 3</button>
+            </div>
+
+            <div class="image-container">
+                <img id="main-image" src="data_center1.jpg" alt="Data Center Image">
+                <p class="image-caption" id="caption">Image 1</p>
+            </div>
+
+            <br>
+        </div>
+              
+
+        <button id="hint-button" onclick="showHint()">Show Hint</button>
+        <span id="hint-count">(0/3 hints used)</span>
+        <div id="hints-container"></div>
+
+        <button id="next-level-button" onclick="goToNextLevel()">Go to Next Level</button>
+    </div>
+    <div id="score-container">
+        <h3>Score: <span id="score">0</span></h3>
+    </div>
+    
+
+
+
+
+
+
+
+
+
+
+
+
+
+    <script>
+
+        let hintIndex = 0;
+        const hints = [
+            "Hint 1: The application doesn't provide any input fields for injecting scripts directly. However, the URL bar is editable. Try experimenting with modifying the URL.",
+            "Hint 2: This application likely uses some JavaScript functions internally (like innerHTML, src, or eval) that can execute injected scripts. Look for ways to exploit such sinks via the URL.",
+            "Hint 3: To inject a script, try adding a payload in the URL, such as: ' onerror=alert() "
+        ];
+
+        const levels = [
+            { src: "img1.jpg", caption: "Image 1", url: "https://xsscs.com/level3/frame#1" },
+            { src: "img2.jpg", caption: "Image 2", url: "https://xsscs.com/level3/frame#2" },
+            { src: "img4.jpg", caption: "Image 3", url: "https://xsscs.com/level3/frame#3" },
+        ];
+
+        const urlBar = document.getElementById("url-bar");
+
+        function showImage(index) {
+            const level = levels[index - 1];
+
+            // Update image and caption
+            document.getElementById("main-image").src = level.src;
+            document.getElementById("caption").textContent = level.caption;
+
+            // Reset visibility when switching frames
+            document.getElementById("main-image").style.display = "block";
+            document.getElementById("caption").style.display = "block";
+
+            // Update active button
+            const buttons = document.querySelectorAll(".tab-button");
+            buttons.forEach((button, idx) => {
+                button.classList.toggle("active", idx === index - 1);
+            });
+
+            // Update URL bar
+            urlBar.value = level.url;
+        }
+
+        function goButtonClick() {
+            const urlBar = document.getElementById('url-bar');
+            const urlValue = urlBar.value;
+
+            // Check for a single quote in the URL
+            if (urlValue.includes("'")) {
+                // If a single quote is found, hide the image
+                document.getElementById("main-image").style.display = "none";
+                document.getElementById("caption").style.display = "none";
+            } else {
+                // If no single quote is found, display the image
+                document.getElementById("main-image").style.display = "block";
+                document.getElementById("caption").style.display = "block";
+            }
+            // Match the intended query for XSS
+            const xssRegex = /^https:\/\/xsscs\.com\/level3\/frame(#1|#2|#3)'.*(?:onerror="alert\(\)"|onerror=alert\(\))/i;
+
+            if (xssRegex.test(urlValue)) {
+                alert('XSS Alert Triggered!');
+                setTimeout(function() {
+                    // Create overlay (blur effect)
+                    let overlay = document.createElement("div");
+                    overlay.id = "overlay"; // Assign an ID for easy removal
+                    overlay.style.position = "fixed";
+                    overlay.style.top = "0";
+                    overlay.style.left = "0";
+                    overlay.style.width = "100%";
+                    overlay.style.height = "100%";
+                    overlay.style.background = "rgba(0, 0, 0, 0.5)"; // Semi-transparent dark overlay
+                    overlay.style.backdropFilter = "blur(5px)"; // Apply blur effect
+                    overlay.style.zIndex = "9998"; // Below the popup
+
+                    // Create popup
+                    let popup = document.createElement("div");
+                    popup.style.position = "fixed";
+                    popup.style.top = "50%";
+                    popup.style.left = "50%";
+                    popup.style.transform = "translate(-50%, -50%)";
+                    popup.style.background = "black";
+                    popup.style.color = "white";
+                    popup.style.padding = "20px";
+                    popup.style.border = "2px solid white";
+                    popup.style.borderRadius = "5px";
+                    popup.style.zIndex = "9999"; // Above the overlay
+                    popup.style.boxShadow = "0px 0px 10px rgba(0, 0, 0, 0.5)";
+                    popup.style.maxWidth = "80vw";  
+                    popup.style.maxHeight = "60vh"; 
+                    popup.style.overflow = "auto";  
+                    popup.style.textAlign = "center"; 
+                    popup.style.whiteSpace = "normal"; 
+
+                    popup.innerHTML = `<p style="margin-bottom: 10px;">
+                                        <strong>Level 3: DOM-Based XSS</strong><br><br>
+                                        The browser processes the <img> tag and tries to load the file from the src attribute.<br><br>
+                                        Example: < img src="invalid.jpg" onerror=alert()><br><br>
+                                        If the file doesn’t exist or the URL is incorrect, the browser encounters an error.<br><br>
+                                        The onerror attribute is designed to handle such errors but can be used to execute JavaScript.<br><br>
+                                        The code inside onerror="alert('XSS')" runs as soon as the error occurs, triggering the alert.<br><br>
+
+                                    </p>
+                                    <button id="closePopup"
+                                            style="padding: 5px 10px; background: white; color: black; border: none; cursor: pointer; border-radius: 3px;">
+                                        OK
+                                    </button>`;
+
+                    // Append elements
+                    document.body.appendChild(overlay);
+                    document.body.appendChild(popup);
+
+                    // Add event listener to remove blur when clicking OK
+                    document.getElementById("closePopup").addEventListener("click", function() {
+                        popup.remove(); // Remove popup
+                        overlay.remove(); // Remove overlay (blur)
+                    });
+
+                }, 100);
+                // reveal the "Next Level" button
+                document.getElementById('next-level-button').style.display = 'inline-block';
+                
+            }
+        }
+
+        function showHint() {
+            const hintsContainer = document.getElementById('hints-container');
+            const hintCount = document.getElementById('hint-count');
+
+            if (hintIndex < hints.length) {
+                const hint = document.createElement('p');
+                hint.textContent = hints[hintIndex];
+                hintsContainer.appendChild(hint);
+                hintIndex++;
+
+                // Update the hint count
+                hintCount.textContent = `(${hintIndex}/3 hints used)`;
+
+                // Disable the button after all hints are shown
+                if (hintIndex === hints.length) {
+                    document.getElementById('hint-button').disabled = true;
+                }
+            }
+        }
+
+        function goToNextLevel() {
+
+            // Proceed to the next level
+            window.location.href = 'xss4.html';
+        }
+
+        // Mark the level as completed
+        const currentLevel = 3; // Change this for each level
+        let progress = JSON.parse(localStorage.getItem('xssProgress')) || { completedLevels: [] };
+
+        if (!progress.completedLevels.includes(currentLevel)) {
+        progress.completedLevels.push(currentLevel);
+        localStorage.setItem('xssProgress', JSON.stringify(progress));
+        }
+
+        // Optional: Initialize the first image as active
+        showImage(1);
+    </script>
+</body>
+</html>
+
+    

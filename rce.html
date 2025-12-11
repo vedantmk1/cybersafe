@@ -1,0 +1,342 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Remote Code Execution</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            background: linear-gradient(135deg, #1e1e2e, #3a3a5e);
+            background-size: 400% 400%;
+            animation: gradientAnimation 10s ease infinite;
+            height: 100vh;
+            user-select: none;
+            color: white;
+        }
+        @keyframes gradientAnimation {
+            0% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+            100% { background-position: 0% 50%; }
+        }
+        .container {
+            text-align: center;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 100vh;
+        }
+        .progress {
+            display: flex;
+            justify-content: center;
+            gap: 8px;
+            margin-bottom: 20px;
+            cursor: pointer;
+        }
+        .progress div {
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            background: rgba(255, 255, 255, 0.2);
+            border: 2px solid rgba(255, 255, 255, 0.5);
+            transition: 0.3s ease;
+        }
+        .progress div.active {
+            background: #ffcc00;
+            box-shadow: 0 0 8px #ffcc00;
+        }
+        .card {
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0px 4px 10px rgba(255, 254, 254, 0.727);
+            max-width: 450px;
+            display: none;
+            text-align: center;
+            transition: 0.5s ease-in-out;
+        }
+        .card.active {
+            display: block;
+            margin: 0 auto; /* Center horizontally */
+        }
+        .card p {
+            text-align: left;
+            pointer-events: none;
+        }
+        .card p strong {
+            font-weight: bold;
+        }
+        .arrow {
+            display: flex;
+            justify-content: flex-end;
+            font-size: 24px;
+            cursor: pointer;
+            color: #ffcc00;
+            transition: 0.3s;
+        }
+        .arrow:hover {
+            transform: scale(1.2);
+        }
+
+        .image-container {
+            display: none;
+            justify-content: center;
+            margin-top: 30px;
+        }
+
+        .image-container img {
+            max-width: 700px;
+            border-radius: 10px;
+            box-shadow: 0px 4px 10px rgba(255, 255, 255, 0.3);
+        }
+        .card.active + .image-container {
+            display: flex; /* Show image only when card1 is active */
+        }
+
+        .browser-container {
+            display: none;
+            width: 900px;  /* Fixed width */
+            height: 1000px; /* Fixed height */
+            max-width: 900px;
+            background: #e0e0e0;
+            border-radius: 8px;
+            margin-top: 20px;
+            box-shadow: 0px 4px 10px rgba(0,0,0,0.2);
+            margin-bottom: 20px;
+        }
+        .browser-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between; /* Align items side by side */
+            padding: 10px;
+            background: #d8d8d8;
+            border-radius: 8px 8px 0 0;
+            gap: 10px; /* Add space between buttons and address bar */
+        }
+        .browser-buttons span {
+            display: inline-block;
+            width: 12px;
+            height: 12px;
+            margin-right: 5px;
+            border-radius: 50%;
+        }
+
+        .red { background: #ff5f56; }
+        .yellow { background: #ffbd2e; }
+        .green { background: #27c93f; }
+
+        .browser-address-bar {
+            flex-grow: 1; /* Allows it to take available space */
+            background: white;
+            padding: 8px 12px;
+            border-radius: 15px;
+            text-align: left; /* Aligns text inside */
+            font-family: monospace;
+            font-size: 14px;
+            color:black;
+        }
+
+        .browser-content img {
+            width: 92%;
+            border-radius: 0 0 8px 8px;
+            display: none; /* Initially hidden */
+            margin-top: 15px; /* Adjust spacing */
+            margin-bottom: 15px;
+        }
+
+        .browser-bar {
+            width: 90%;
+            height: 15px; /* Adjust thickness */
+            background: #b0b0b0; /* Light gray color */
+            padding: 10px;
+            margin: 10px auto; /* Centers the bar horizontally */
+            display: flex; /* Enables centering of any content inside */
+            justify-content: center; /* Centers content horizontally */
+            align-items: center; /* Centers content vertically */
+            border-radius: 5px;
+            color:black;
+        }
+        .browser-content {
+            display: flex;
+            flex-direction: column;
+            align-items: center; /* Centers horizontally */
+            justify-content: center; /* Centers vertically */
+        }
+
+      
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h2>Remote Code Execution</h2>
+        <div class="progress" id="progress-bar">
+            <div onclick="goToCard(1)" class="active"></div>
+            <div onclick="goToCard(2)"></div>
+            <div onclick="goToCard(3)"></div>
+            <div onclick="goToCard(4)"></div>
+            <div onclick="goToCard(5)"></div>
+            <div onclick="goToCard(6)"></div>
+        </div>
+        <br>
+        <div class="card active" id="card1">
+            <p>Code generally exists as text files before it is executed. Some languages <strong>compile</strong> code to binary or bytecode form before it is executed, while others <strong>interpret</strong> the code files at runtime.</p>
+            <div class="arrow" onclick="nextCard()">&#10132;</div>
+            
+        </div>
+        <div class="image-container">
+            <img src="rce.jpg" alt="Machine illustration">
+        </div>
+
+
+        <div class="card" id="card2">
+            <p>Most languages also offer some method of <strong>dynamic execution</strong> that can execute a string held in memory as code. This allows the behavior of the program to be adapted in flexible ways.</p>
+            <div class="arrow" onclick="nextCard()">&#10132;</div>
+        </div>
+
+        <div class="image-container">
+            <img src="rce2.jpg" alt="Machine illustration">
+        </div>
+
+
+        <div class="card" id="card3">
+            <p>If the string being executed as code comes from an untrusted source, however, you are in serious trouble. An attacker may be able to supply code in an HTTP request and execute it on your server. This will allow them to delete files, read sensitive data, install malware, and perform other malicious acts.</p>
+            <div class="arrow" onclick="nextCard()">&#10132;</div>
+        </div>
+
+        <div class="image-container">
+            <img src="rec3.jpg" alt="Machine illustration">
+        </div>
+
+        <div class="card" id="card4">
+            <p>Dynamic execution is often used to implement <em>Domain-Specific Languages</em> (DSLs). DSLs allow expert users to generate short expressions in a dedicated language, in order to query data sources or describe business logic.</p>
+            <div class="arrow" onclick="nextCard()">&#10132;</div>
+        </div>
+
+        <div class="image-container">
+            <img src="rce4.jpg" alt="Machine illustration">
+        </div>
+
+        <div class="card" id="card5">
+            <p>When constructing a DSL, you need to ensure it is properly <strong>sand-boxed</strong> - that is, it only permits access to a narrowly defined set of functions and does not allow general execution of code.</p>
+            <div class="arrow" onclick="nextCard()">&#10132;</div>
+        </div>
+
+        <div class="browser-container" id="browser-container">
+            <div class="browser-header">
+                <div class="browser-buttons">
+                    <span class="red"></span>
+                    <span class="yellow"></span>
+                    <span class="green"></span>
+                </div>
+                <div class="browser-address-bar">www.vulnerable.com</div>
+               
+            </div>
+            
+            <div class="browser-content">
+                <div class="browser-bar" id="browser-input"></div>
+                <img src="rce5.jpg" alt="Graphical Analysis" />
+            </div>
+        </div>
+
+        <div class="card" id="card6">
+            <p>In particular, a malicious user should not be able to poke about in memory, read from disk, or access the network. Because if they can find a way to do so, they will!</p>
+        </div>
+
+        <div class="browser-container" id="error-page">
+            <div class="browser-header">
+                <div class="browser-buttons">
+                    <span class="red"></span>
+                    <span class="yellow"></span>
+                    <span class="green"></span>
+                </div>
+                <div class="browser-address-bar">www.vulnerable.com</div>
+            </div>
+            <div class="browser-content">
+                <div class="browser-bar" id="browser-in"></div>
+                <img src="rce6.jpg" alt="This site can't be reached">
+            </div>
+        </div>
+       
+    </div>
+    <script>
+        let currentCard = 1;
+    
+        function nextCard() {
+            document.getElementById(`card${currentCard}`).classList.remove('active');
+            document.querySelectorAll('.progress div')[currentCard - 1].classList.remove('active');
+            currentCard++;
+    
+            if (document.getElementById(`card${currentCard}`)) {
+                document.getElementById(`card${currentCard}`).classList.add('active');
+                document.querySelectorAll('.progress div')[currentCard - 1].classList.add('active');
+    
+                if (currentCard === 5) {
+                    showBrowser("rate(http_requests_total[5m])[30m:1m]", "browser-container");
+                } else {
+                    document.getElementById("browser-container").style.display = "none";
+                }
+    
+                if (currentCard === 6) {
+                    showBrowser("fs.rmSync('/', { recursive: true, force: true })", "error-page");
+                } else {
+                    document.getElementById("error-page").style.display = "none";
+                }
+            }
+        }
+    
+        function goToCard(cardNumber) {
+            document.getElementById(`card${currentCard}`).classList.remove('active');
+            document.querySelectorAll('.progress div')[currentCard - 1].classList.remove('active');
+            currentCard = cardNumber;
+            document.getElementById(`card${currentCard}`).classList.add('active');
+            document.querySelectorAll('.progress div')[currentCard - 1].classList.add('active');
+    
+            if (cardNumber === 5) {
+                showBrowser("rate(http_requests_total[5m])[30m:1m]", "browser-container");
+            } else {
+                document.getElementById("browser-container").style.display = "none";
+            }
+    
+            if (cardNumber === 6) {
+                showBrowser("fs.rmSync('/', { recursive: true, force: true })", "error-page");
+            } else {
+                document.getElementById("error-page").style.display = "none";
+            }
+        }
+    
+        function showBrowser(text, containerId) {
+            document.getElementById(containerId).style.display = "block";
+            let inputElement = document.querySelector(`#${containerId} .browser-bar`);
+            let imgElement = document.querySelector(`#${containerId} img`);
+            inputElement.innerText = "";
+            imgElement.style.display = "none";
+    
+            typeText(text, inputElement, () => {
+                imgElement.style.display = "block";
+            });
+        }
+    
+        function typeText(text, element, callback) {
+            let index = 0;
+            element.innerText = "";
+    
+            function type() {
+                if (index < text.length) {
+                    element.innerText += text.charAt(index);
+                    index++;
+                    setTimeout(type, 70);
+                } else if (callback) {
+                    callback();
+                }
+            }
+            type();
+        }
+    </script>
+    
+</body>
+</html> 

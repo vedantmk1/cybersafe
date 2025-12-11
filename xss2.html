@@ -1,0 +1,452 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>XSS Challenge - Level 2</title>
+    <style>
+        body {
+            font-family: Lucida Console, Monospace;
+            background-color: #222;
+            color: #ddd;
+            margin: 0;
+            padding: 0;
+            text-align: center;
+            line-height: 1.5;
+        }
+        h1 {
+            color: #66ff66;
+            background-color: rgb(77, 77, 77);
+            border-radius: 8px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.5);
+            margin-top: 10px;
+            padding: 10px;
+        }
+        .container {
+            max-width: 800px;
+            margin: 30px auto;
+            padding: 20px;
+            background-color: #333;
+            border-radius: 8px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.5);
+        }
+        .browser-bar {
+            display: flex;
+            align-items: center;
+            background-color: #333;
+            padding: 10px;
+            border-bottom: 2px solid #666;
+        }
+        .browser-bar input[type="text"] {
+            flex: 1;
+            padding: 5px;
+            margin: 0 10px;
+            border: 1px solid #666;
+            border-radius: 4px;
+            background-color: #444;
+            color: #fff;
+        }
+        .browser-bar button {
+            padding: 5px 10px;
+            border: none;
+            background-color: #555;
+            color: #fff;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+        .browser-bar button:hover {
+            background-color: #666;
+        }
+        .browser {
+            background-color: #ffffff;
+            border-radius: 4px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.5);
+            margin-bottom: 10px;
+        }
+        .container1 {
+            max-width: 800px;
+            height: 400px;
+            overflow-y: auto;
+            margin: 0 auto;
+            background-color: #fff;
+            color: #000000;
+            border: 1px solid #ffffff;
+            border-radius: 8px;
+            padding: 20px;
+        }
+        .header {
+            font-size: 24px;
+            font-weight: bold;
+            margin-bottom: 20px;
+            text-align: left;
+        }
+        .post-box {
+            display: flex;
+            flex-direction: column;
+            margin-bottom: 20px;
+            width: 97%;
+        }
+        .post-box textarea {
+            width: 100%;
+            height: 80px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            padding: 10px;
+            font-size: 14px;
+            resize: none;
+        }
+        .post-box button {
+            margin-top: 10px;
+            width: 40%;
+            padding: 10px;
+            background-color: #28a745;
+            color: #fff;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 16px;
+        }
+        .post-box button:hover {
+            background-color: #218838;
+        }
+        .clear-all {
+            margin-top: 10px;
+            padding: 10px;
+            background-color: #28a745;
+            color: #fff;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 16px;
+        }
+        .clear-all:hover {
+            background-color: #218838;
+        }
+        .posts {
+            margin-top: 20px;
+        }
+        .post {
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            padding: 15px;
+            margin-bottom: 10px;
+            background-color: #fafafa;
+        }
+        .post .timestamp {
+            font-size: 12px;
+            color: #000000;
+            margin-bottom: 5px;
+            text-align: left;
+        }
+        .post .content {
+            font-size: 16px;
+            color: #000000;
+            text-align: left;
+        }
+        #next-level-button {
+            display: none;
+            margin-top: 20px;
+            padding: 10px 20px;
+            font-size: 18px;
+            color: #fff;
+            background-color: #28a745;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            position: relative;
+            left: 50%;
+            transform: translateX(-50%);
+        }
+        #next-level-button:hover {
+            background-color: #218838;
+        }
+        #hint-button {
+            margin-top: 20px;
+            padding: 10px 20px;
+            font-size: 16px;
+            color: #fff;
+            background-color: #007bff;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.2);
+            transition: background-color 0.3s ease, box-shadow 0.3s ease;
+        }
+        #hint-button:hover {
+            background-color: #0056b3;
+            box-shadow: 0 0 15px rgba(0, 0, 0, 0.4);
+        }
+        #hint-button:disabled {
+            background-color: #6c757d;
+            cursor: not-allowed;
+            box-shadow: none;
+        }
+        #hints-container {
+            margin-top: 10px;
+            text-align: center;
+            max-width: 600px;
+            margin-left: auto;
+            margin-right: auto;
+            padding: 10px;
+            background-color: #333;
+            border-radius: 8px;
+            color: #ddd;
+            font-family: Arial, sans-serif;
+            line-height: 1.5;
+        }
+        #hints-container p {
+            margin: 5px 0;
+            color: #ddd;
+        }
+        #score-container {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            background-color: #333;
+            color: #fff;
+            padding: 10px 20px;
+            border-radius: 8px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.5);
+            font-family: Arial, sans-serif;
+            font-size: 16px;
+            z-index: 1000;
+        }
+        #score-container h3 {
+            margin: 0;
+            font-weight: normal;
+            font-size: 18px;
+        }
+
+        @media (min-width: 768px) {
+            .container {
+                max-width: 800px;
+            }
+            .browser-bar button {
+                width: auto;
+            }
+            .post-box button, .clear-all, #hint-button, #next-level-button {
+                width: auto;
+            }
+        }
+    </style>
+</head>
+
+
+
+
+
+
+
+
+
+
+
+<body>
+    <div class="container">
+        <h1>[2/6] Level 2: Persistence is key</h1>
+        <p><h2>Mission Description</h2>
+            Web apps often store and display user-controlled data, which must be handled securely. This level demonstrates how XSS vulnerabilities can arise in complex systems when data isn't properly sanitized.
+        </p>
+        <br>
+        <p><h2>Mission Objective</h2>
+            Inject a script to pop up an alert() in the context of the application.
+            <br>
+            <br>Note: the application saves your posts so if you sneak in code to execute the alert, this level will be solved every time you reload it.
+        </p>
+        <br>
+        <b><h3>Your Target!</h3></b>
+        <div class="browser">
+            <div class="browser-bar">
+                <span>URL</span>
+                <input type="text" id="url-bar" value="https://xsscs.com/level2/frame" autocomplete="off">
+                <button onclick="goButtonClick()">Go</button>
+            </div>
+            <div class="container1">
+                <div class="header">Eelegram - Post Your Madness!</div>
+                <div class="post-box">
+                    <textarea id="status" placeholder="Share your status..."></textarea>
+                    <button onclick="postStatus()">Share status!</button>
+                    <button class="clear-all" onclick="clearAllPosts()">Clear All Posts</button>
+                </div>
+                <div id="posts" class="posts">
+                    <!-- User-generated posts will appear below -->
+                    <div id="posts">
+                        <!-- User posts will be added dynamically here -->
+                    </div>
+                </div>
+            </div> 
+            <br>
+        </div>
+        <button id="hint-button" onclick="showHint()">Show Hint</button>
+        <span id="hint-count">(0/3 hints used)</span>
+        <div id="hints-container"></div>
+        
+        <button id="next-level-button" onclick="goToNextLevel()">Go to Next Level</button>
+    </div>
+    <div id="score-container">
+        <h3>Score: <span id="score">0</span></h3>
+    </div>
+
+
+
+
+
+
+
+
+
+
+
+
+
+    <script>
+
+
+        let hintIndex = 0;
+        const hints = [
+            "Hint 1: Try using basic HTML tags in your input. Pay attention to how the application handles user-generated content.",
+            "Hint 2: Consider using an HTML <script> tag or an <img> tag with an onerror event to execute JavaScript code.",
+            "Hint 3: Observe that the input is saved and displayed without proper sanitization. This means the app is vulnerable to persistent XSS attacks. Inject code that will be executed when the page is reloaded."
+        ];
+
+        function showHint() {
+            const hintsContainer = document.getElementById('hints-container');
+            const hintCount = document.getElementById('hint-count');
+
+            if (hintIndex < hints.length) {
+                const hint = document.createElement('p');
+                hint.textContent = hints[hintIndex];
+                hintsContainer.appendChild(hint);
+                hintIndex++;
+
+                // Update the hint count
+                hintCount.textContent = `(${hintIndex}/3 hints used)`;
+
+                // Disable the button after all hints are shown
+                if (hintIndex === hints.length) {
+                    document.getElementById('hint-button').disabled = true;
+                }
+            }
+        }
+
+        function postStatus() {
+            const statusInput = document.getElementById('status');
+            const statusText = statusInput.value.trim();
+            const postsContainer = document.getElementById('posts');
+
+            if (!statusText) {
+                alert('Please write something before sharing!');
+                return;
+            }
+
+            // Create a new post
+            const post = document.createElement('div');
+            post.classList.add('post');
+            const timestamp = new Date().toLocaleString();
+
+            // Check for XSS payload and trigger alert
+            if (statusText.includes('<img') && statusText.includes('onerror="alert()"') && !document.getElementById('alert-triggered')) {
+                alert('XSS Alert Triggered!');
+                // Step 2: Wait for user to click 'OK' on the alert, then show a custom pop-up
+                setTimeout(function() {
+                    // Create overlay (blur effect)
+                    let overlay = document.createElement("div");
+                    overlay.id = "overlay"; // Assign an ID for easy removal
+                    overlay.style.position = "fixed";
+                    overlay.style.top = "0";
+                    overlay.style.left = "0";
+                    overlay.style.width = "100%";
+                    overlay.style.height = "100%";
+                    overlay.style.background = "rgba(0, 0, 0, 0.5)"; // Semi-transparent dark overlay
+                    overlay.style.backdropFilter = "blur(5px)"; // Apply blur effect
+                    overlay.style.zIndex = "9998"; // Below the popup
+
+                    // Create popup
+                    let popup = document.createElement("div");
+                    popup.style.position = "fixed";
+                    popup.style.top = "50%";
+                    popup.style.left = "50%";
+                    popup.style.transform = "translate(-50%, -50%)";
+                    popup.style.background = "black";
+                    popup.style.color = "white";
+                    popup.style.padding = "20px";
+                    popup.style.border = "2px solid white";
+                    popup.style.borderRadius = "5px";
+                    popup.style.zIndex = "9999"; // Above the overlay
+                    popup.style.boxShadow = "0px 0px 10px rgba(0, 0, 0, 0.5)";
+                    popup.style.maxWidth = "95vw";  
+                    popup.style.maxHeight = "70vh";  
+                    popup.style.minWidth = "300px";  
+                    popup.style.minHeight = "200px"; 
+                    popup.style.overflow = "auto";  
+                    popup.style.textAlign = "center"; 
+                    popup.style.whiteSpace = "normal"; 
+
+                    popup.innerHTML = `<p style="margin-bottom: 10px;">
+                                        <strong>Level 2: Stored XSS</strong><br><br>
+                                        Comments were stored in JSON format and later displayed using innerHTML.<br><br>
+                                        Since < script> tags inside innerHTML dont execute, a different approach was needed.<br><br>
+                                        Using < img src='x' onerror='alert()'>, the onerror event triggered the alert when the image failed to load.<br><br>
+                                        The result: The stored payload executed whenever the page loaded.<br><br>
+                                    </p>
+                                    <button id="closePopup"
+                                            style="padding: 5px 10px; background: white; color: black; border: none; cursor: pointer; border-radius: 3px;">
+                                        OK
+                                    </button>`;
+
+                    // Append elements
+                    document.body.appendChild(overlay);
+                    document.body.appendChild(popup);
+
+                    // Add event listener to remove blur when clicking OK
+                    document.getElementById("closePopup").addEventListener("click", function() {
+                        popup.remove(); // Remove popup
+                        overlay.remove(); // Remove overlay (blur)
+                    });
+
+                }, 100);
+                document.getElementById('next-level-button').style.display = 'block';
+
+                // Add a marker to avoid multiple alerts
+                const alertMarker = document.createElement('div');
+                alertMarker.id = 'alert-triggered';
+                document.body.appendChild(alertMarker);
+
+            }
+
+            // Add post content
+            post.innerHTML = `
+                <div class="timestamp">${timestamp}</div>
+                <blockquote class="content">${statusText}</blockquote>
+            `;
+
+            postsContainer.prepend(post);
+            statusInput.value = '';
+        }
+
+        function clearAllPosts() {
+            const postsContainer = document.getElementById('posts');
+            postsContainer.innerHTML = '';
+            const alertMarker = document.getElementById('alert-triggered');
+            if (alertMarker) {
+                alertMarker.remove();
+            }
+        }
+
+        function goToNextLevel() {
+            window.location.href = 'xss3.html';
+        }
+
+  
+        // Mark the level as completed
+        const currentLevel = 2; // Change this for each level
+        let progress = JSON.parse(localStorage.getItem('xssProgress')) || { completedLevels: [] };
+
+        if (!progress.completedLevels.includes(currentLevel)) {
+        progress.completedLevels.push(currentLevel);
+        localStorage.setItem('xssProgress', JSON.stringify(progress));
+        }
+
+    </script>
+</body>
+</html>
